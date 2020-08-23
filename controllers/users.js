@@ -1,7 +1,7 @@
+// const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 // eslint-disable-next-line no-unused-vars
 const { validationError } = require('./validationError');
-const jwt = require('jsonwebtoken');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -83,19 +83,5 @@ module.exports.updateAvatar = (req, res) => {
         res.status(500);
       }
       res.send({ message: err.message });
-    });
-};
-
-module.exports.login = (req, res) => {
-  const { email, password } = req.body;
-
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      res.send({
-        token: jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' }),
-      });
-    })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
     });
 };

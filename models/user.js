@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 8,
-    select: false
+    select: false,
   },
   email: {
     type: String,
@@ -37,8 +37,26 @@ const userSchema = new mongoose.Schema({
       validator: (v) => isEmail(v),
       message: (props) => `${props.value} неправильный формат почты!`,
     },
-  }
+  },
 });
 
-module.exports = mongoose.model('user', userSchema);
+userSchema.statics.findUserByCredentials = function loginController(email, password) {
+  return this.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
 
+      // eslint-disable-next-line no-undef
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new Error('Неправильные почта или пароль'));
+          }
+
+          return user;
+        });
+    });
+};
+
+module.exports = mongoose.model('user', userSchema);
