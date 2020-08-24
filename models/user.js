@@ -1,17 +1,25 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-const isEmail = require('validator/lib/isEmail');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => validator.trim(v),
+      message: 'пробелы недопустимы!',
+    },
     minlength: 2,
     maxlength: 30,
   },
   about: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => validator.trim(v),
+      message: 'пробелы недопустимы!',
+    },
     minlength: 2,
     maxlength: 30,
   },
@@ -23,20 +31,19 @@ const userSchema = new mongoose.Schema({
       message: (props) => `${props.value} недопустимый адрес!`,
     },
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: {
+      validator: (v) => validator.isEmail(v),
+      message: (props) => `${props.value} некорректный email!`,
+    },
+  },
   password: {
     type: String,
     required: true,
-    minlength: 8,
     select: false,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-    validate: {
-      validator: (v) => isEmail(v),
-      message: (props) => `${props.value} неправильный формат почты!`,
-    },
   },
 });
 
@@ -47,7 +54,6 @@ userSchema.statics.findUserByCredentials = function loginController(email, passw
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
 
-      // eslint-disable-next-line no-undef
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {

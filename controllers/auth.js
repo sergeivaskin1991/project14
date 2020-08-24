@@ -1,11 +1,10 @@
-// eslint-disable-next-line import/no-unresolved
-const bcrypt = require('bcryptjs');
+/* eslint-disable consistent-return */
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { validationError } = require('./validationError');
 require('dotenv').config();
 
-// eslint-disable-next-line consistent-return
 module.exports.createUser = (req, res) => {
   const {
     name, about, avatar, email, password,
@@ -30,10 +29,9 @@ module.exports.createUser = (req, res) => {
       res
         .status(201)
         .send({
-          message: 'Пользователь успешно добавлен',
+          message: 'Пользователь добавлен',
         });
     })
-    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'MongoError' && err.code === 11000) {
         return res
@@ -53,7 +51,7 @@ module.exports.login = (req, res) => {
   if (!password || !email) {
     return res
       .status(400)
-      .send({ message: 'Поля email и "пароль" должны быть заполнены' });
+      .send({ message: 'Поля "email" и "пароль" должны быть заполнены' });
   }
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -68,7 +66,6 @@ module.exports.login = (req, res) => {
         .cookie('jwt', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
-          // sameSite: true,
         })
         .end();
     })

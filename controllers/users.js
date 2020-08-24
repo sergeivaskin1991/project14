@@ -1,4 +1,3 @@
-// const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 // eslint-disable-next-line no-unused-vars
 const { validationError } = require('./validationError');

@@ -4,9 +4,9 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const auth = require('./middlewares/auth');
-const { register } = require('./controllers/auth');
-const { login } = require('./controllers/users');
+const cookieParser = require('cookie-parser');
+const { auth } = require('./middlewares/auth');
+const { createUser, login } = require('./controllers/auth');
 require('dotenv').config();
 
 const { PORT = 3000 } = process.env;
@@ -25,26 +25,29 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 const logger = (req, res, next) => {
-  console.log('Запрашиваемый путь — ', req.path);
+  console.log('Путь — ', req.path);
   next();
 };
 
 app.use(logger);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(limiter);
 app.use(helmet());
+app.use(cookieParser());
 
-app.post('/signup', register);
 app.post('/signin', login);
+app.post('/signup', createUser);
 
 app.use(auth);
-
-app.use('/cards', require('./routes/cards'));
 app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
 
 app.use((req, res) => {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден!' });
+  res
+    .status(404)
+    .send({ message: 'Запрашиваемый ресурс не найден!' });
 });
 
 app.listen(PORT, () => {
