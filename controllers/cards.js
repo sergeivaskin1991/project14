@@ -1,5 +1,6 @@
+/* eslint-disable consistent-return */
 const Card = require('../models/card');
-// const { validationError } = require('./validationError');
+const { validationError } = require('./validationError');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -23,20 +24,26 @@ module.exports.createCard = (req, res) => {
     });
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = async (req, res) => {
   const { cardId } = req.params;
+  const userId = req.user._id;
 
-  Card.findById(cardId)
-    .orFail().remove()
-    .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        res.status(404);
-      } else {
-        res.status(500);
-      }
-      res.send({ message: err.message });
+  await Card.findById(cardId)
+    .orFail(() => {
+      res
+        .status(404)
+        .send({ message: `Неправильный ID=${cardId} карточки!` });
     });
+  Card.findOneAndRemove({ _id: cardId, owner: userId })
+    .then((card) => {
+      if (!card) {
+        return res
+          .status(403)
+          .send({ message: 'Это не ваша карточка!' });
+      }
+      res.send({ data: card });
+    })
+    .catch((err) => validationError(err, req, res));
 };
 
 module.exports.likeCard = (req, res) => {
